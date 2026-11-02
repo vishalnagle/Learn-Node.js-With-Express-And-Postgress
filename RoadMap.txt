@@ -1,0 +1,60 @@
+NODE JS COMPLETE ROADMAP
+
+Section 1
+------------
+1. What is Backend? 
+2. What is Node.js?
+3. Why Node.js? 
+4. How Node.js Works
+5. V8 Engine 
+6. Event Loop 
+7. Single Thread
+8. Non-blocking I/O 
+9. Modules
+10. npm
+11. package.json
+12. Creating First Server
+
+Section 2
+------------
+13. Express.js
+14. Routing
+15. Middleware
+16. Request Object
+17. Response Object
+18. Error Handling
+
+Section 3
+------------
+19. PostgreSQL
+20. SQL Basics
+21. Prisma ORM
+22. CRUD APIs
+
+Section 4
+------------
+23. Authentication
+24. JWT
+25. Password Hashing
+26. Authorization
+27. Role Based Access
+
+Section 5
+------------
+28. File Upload
+29. Validation
+30. Pagination
+31. Search
+32. Sorting
+33. Transactions
+
+Section 6
+------------
+34. Deployment
+35. Docker
+36. Security
+37. Performance
+38. Scaling
+39. Redis
+40. WebSockets
+
