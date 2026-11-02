@@ -1,0 +1,2921 @@
+SECTION 1 — NODE.JS BACKEND FUNDAMENTALS Complete Learning Notes: Topics
+1–12 A detailed study reference with explanations, examples, commands,
+practical exercises, and interview questions.
+
+============================================================ HOW TO USE
+THESE NOTES ============================================================
+
+This document follows the original Section 1 learning sequence:
+
+1.  Backend
+2.  Node.js
+3.  Why Node.js
+4.  How Node.js Works
+5.  V8 Engine
+6.  Event Loop
+7.  Single Thread
+8.  Non-blocking I/O
+9.  Modules
+10. npm
+11. package.json
+12. Creating Your First Node.js HTTP Server
+
+The examples use modern JavaScript and, where appropriate, ES modules.
+Most examples can be run with Node.js 22. If an example uses ES module
+syntax (import/export), add “type”: “module” to package.json or use the
+.mjs file extension.
+
+Some examples are deliberately small to teach one concept at a time.
+Production applications also need validation, security controls,
+logging, monitoring, tests, and robust error handling.
+
+============================================================ TOPIC 1 —
+BACKEND ============================================================
+
+1.1 What is the backend?
+
+The backend is the server-side part of an application. It is responsible
+for processing requests, applying business rules, communicating with
+databases and other services, and returning responses to clients.
+
+A typical web application has three major parts:
+
+-   Frontend: the user interface that a person sees and interacts with.
+-   Backend: the server-side application that processes requests and
+    applies business logic.
+-   Database: the system that stores and retrieves application data.
+
+Example: a user opens a shopping application and views their profile.
+
+1.  The frontend displays the profile page.
+2.  The frontend sends an HTTP request to the backend.
+3.  The backend identifies the user and checks whether the request is
+    allowed.
+4.  The backend queries the database for the user’s information.
+5.  The database returns the matching record.
+6.  The backend creates an HTTP response, often containing JSON.
+7.  The frontend reads the response and displays the profile.
+
+Simple architecture:
+
+Browser / React application | | HTTP request v Backend API (Node.js) | |
+SQL query v Database (PostgreSQL) | | Query result v Backend API | |
+HTTP response (JSON) v Browser / React application
+
+1.2 What responsibilities does a backend have?
+
+A backend commonly handles:
+
+-   Business logic: rules that define how the application works.
+-   Authentication: confirming who a user is, often using passwords,
+    sessions, or tokens.
+-   Authorization: checking what an authenticated user is allowed to do.
+-   Database operations: creating, reading, updating, and deleting data.
+-   API development: exposing endpoints for web, mobile, or other
+    clients.
+-   Validation: checking that incoming data is complete and valid.
+-   Security: protecting data, credentials, and application resources.
+-   File handling: uploading, downloading, and storing files.
+-   Integrations: communicating with payment providers, email services,
+    or other APIs.
+-   Logging and monitoring: recording errors and tracking application
+    health.
+-   Performance and scalability: handling traffic efficiently.
+
+1.3 Frontend vs. backend vs. database
+
+Frontend: - Runs mainly in the user’s browser or mobile application. -
+Handles UI, forms, interactions, and presentation. - Examples: React.js,
+Next.js client components, HTML, CSS, JavaScript.
+
+Backend: - Runs on a server or serverless runtime. - Handles business
+rules, authentication, validation, and API requests. - Examples: Node.js
+with Express, Java with Spring Boot, Python with Django.
+
+Database: - Persists application data. - Examples: PostgreSQL, MySQL,
+MongoDB.
+
+Do not confuse a database with a backend. The backend usually sits
+between the client and database. A client should generally not connect
+directly to a private production database.
+
+1.4 What is an API?
+
+API stands for Application Programming Interface. In web development, an
+API often defines how one application communicates with another.
+
+A REST-style API commonly exposes resources through URLs and HTTP
+methods.
+
+Example endpoints:
+
+GET /users Fetch users GET /users/10 Fetch user with ID 10 POST /users
+Create a user PUT /users/10 Replace user 10 PATCH /users/10 Partially
+update user 10 DELETE /users/10 Delete user 10
+
+Example frontend request:
+
+fetch(“http://localhost:3000/users”) .then((response) =>
+response.json()) .then((users) => console.log(users));
+
+Example JSON response:
+
+[ { “id”: 1, “name”: “Rahul”, “email”: “rahul@example.com” }, { “id”: 2,
+“name”: “Amit”, “email”: “amit@example.com” }]
+
+1.5 What is business logic?
+
+Business logic is the set of rules that determine how the application
+behaves.
+
+Example: a wallet application may require that a withdrawal: - Has a
+positive amount. - Does not exceed the available balance. - Is allowed
+only for an authenticated user. - Is recorded in the transaction
+history.
+
+The frontend may display validation messages, but the backend must
+enforce important business rules because clients can be modified or
+bypassed.
+
+1.6 What happens when a user logs in?
+
+A simplified login flow:
+
+1.  User enters email and password in the frontend.
+2.  Frontend sends a POST request to /auth/login.
+3.  Backend validates the request fields.
+4.  Backend finds the user by email.
+5.  Backend compares the submitted password with the stored password
+    hash.
+6.  If valid, backend creates a session or token.
+7.  Backend returns an appropriate response.
+8.  Frontend stores or manages the authentication state according to the
+    chosen security design.
+
+Passwords should never be stored as plain text. Password hashing is
+covered later in the learning plan.
+
+1.7 Important distinction: authentication vs. authorization
+
+Authentication asks: “Who are you?” Authorization asks: “What are you
+allowed to do?”
+
+Example: - Authentication: Vishal successfully logs in. - Authorization:
+Vishal is allowed to view his own profile but is not allowed to access
+an administrator-only endpoint.
+
+1.8 Common backend terms
+
+-   Client: the application that sends a request.
+-   Server: the program that receives and processes requests.
+-   Endpoint: a particular API URL and method.
+-   Request: information sent by the client.
+-   Response: information returned by the server.
+-   Payload: the data carried in a request or response.
+-   Header: metadata associated with an HTTP request or response.
+-   Status code: a numeric result of an HTTP request.
+-   Middleware: a function that runs during request processing.
+-   CRUD: Create, Read, Update, Delete.
+-   ORM: Object-Relational Mapper, a tool that helps work with
+    relational databases using application-language abstractions.
+
+1.9 Interview questions
+
+Q: What is backend development? A: Backend development is the
+development of server-side functionality, including business logic,
+APIs, authentication, database communication, validation, and
+integrations.
+
+Q: What is the difference between frontend and backend? A: The frontend
+handles the user-facing interface and interactions. The backend
+processes requests, applies business rules, and communicates with
+databases and services.
+
+Q: What is an API? A: An API is an interface that defines how software
+components communicate. A web API commonly exposes endpoints over HTTP.
+
+Q: What is the difference between authentication and authorization? A:
+Authentication verifies identity; authorization determines permissions.
+
+Q: Why should the frontend not be trusted to enforce all validation? A:
+A client can be modified or bypassed. Critical validation and
+authorization must be enforced by the backend.
+
+Practice: 1. Draw the flow for a user registration request. 2. List five
+responsibilities of a backend. 3. Explain how React communicates with a
+Node.js API. 4. Explain authentication and authorization using an
+example.
+
+============================================================ TOPIC 2 —
+NODE.JS ============================================================
+
+2.1 What is Node.js?
+
+Node.js is an open-source, cross-platform JavaScript runtime
+environment. It allows JavaScript to run outside the browser, including
+on servers and command-line tools.
+
+JavaScript originally became popular as a browser language. Node.js made
+it possible to use JavaScript for server-side applications as well.
+
+Node.js is not: - A programming language. - A frontend framework. - A
+database. - The same thing as Express.js.
+
+JavaScript is the language. Node.js is a runtime that executes
+JavaScript outside the browser. Express.js is a web framework that runs
+on Node.js.
+
+2.2 Why was Node.js created?
+
+Developers wanted to use JavaScript beyond browser interactions. Node.js
+provides server-side APIs for capabilities such as: - Reading and
+writing files. - Creating HTTP servers. - Working with network
+connections. - Accessing operating-system functionality. - Running
+command-line programs. - Communicating with databases through drivers
+and libraries.
+
+2.3 Install and check Node.js
+
+Check installed versions:
+
+node -v npm -v
+
+Example output may look like:
+
+v22.17.0 10.9.2
+
+Your exact versions may differ.
+
+If you use nvm (Node Version Manager), common commands include:
+
+nvm list nvm install 22 nvm use 22 nvm alias default 22
+
+nvm lets you install and switch between Node.js versions. It is useful
+when projects require different runtime versions.
+
+2.4 Run JavaScript with Node.js
+
+Create a file named app.js:
+
+console.log(“Hello from Node.js”);
+
+Run:
+
+node app.js
+
+Output:
+
+Hello from Node.js
+
+Unlike browser JavaScript, this code runs in the Node.js runtime in your
+terminal.
+
+2.5 Node.js provides built-in modules
+
+Node.js includes modules that do not need to be installed from npm.
+
+Examples:
+
+-   node:fs — file-system operations.
+-   node:http — HTTP server functionality.
+-   node:path — path utilities.
+-   node:os — operating-system information.
+-   node:events — event emitter functionality.
+-   node:crypto — cryptographic utilities.
+-   node:stream — stream APIs.
+
+Example using the OS module:
+
+import os from “node:os”;
+
+console.log(“Platform:”, os.platform()); console.log(“Architecture:”,
+os.arch()); console.log(“Free memory:”, os.freemem());
+
+Run this in an ES module file.
+
+Example using the path module:
+
+import path from “node:path”;
+
+const filePath = path.join(“src”, “controllers”, “user.js”);
+console.log(filePath);
+
+path.join creates a path using the conventions of the current operating
+system.
+
+2.6 Node.js vs. browser JavaScript
+
+Both use JavaScript, but the runtime environment provides different
+APIs.
+
+Browser environment: - document - window - localStorage - DOM APIs -
+browser events
+
+Node.js environment: - process - Buffer - filesystem APIs - HTTP and
+networking APIs - operating-system APIs
+
+For example, this works in a browser:
+
+document.querySelector(“h1”);
+
+But a normal Node.js process does not have a browser DOM, so document is
+not defined unless a DOM implementation is supplied.
+
+This works in Node.js:
+
+import fs from “node:fs”;
+
+console.log(fs.readdirSync(“.”));
+
+2.7 The global process object
+
+Node.js provides a global process object with information and controls
+related to the running process.
+
+Examples:
+
+console.log(process.version); console.log(process.platform);
+console.log(process.cwd()); console.log(process.argv);
+
+-   process.version: Node.js version.
+-   process.platform: operating-system platform identifier.
+-   process.cwd(): current working directory.
+-   process.argv: command-line arguments.
+
+Example:
+
+console.log(“Arguments:”, process.argv);
+
+Run:
+
+node app.js hello world
+
+The extra command-line arguments can be found in process.argv after the
+executable and script path.
+
+2.8 Common use cases for Node.js
+
+-   REST APIs and backend services.
+-   Real-time applications using WebSockets.
+-   Command-line tools.
+-   Build tools and development tooling.
+-   Streaming applications.
+-   Microservices.
+-   Backend-for-frontend services.
+
+2.9 Interview questions
+
+Q: What is Node.js? A: Node.js is an open-source, cross-platform
+JavaScript runtime that executes JavaScript outside a browser.
+
+Q: Is Node.js a programming language? A: No. JavaScript is the language;
+Node.js is the runtime.
+
+Q: Is Node.js a framework? A: No. Express.js is an example of a
+framework that runs on Node.js.
+
+Q: Can Node.js access the filesystem? A: Yes. It provides filesystem
+APIs through the node:fs module.
+
+Q: What is npm? A: npm is the package manager commonly used with Node.js
+to install and manage packages and run project scripts.
+
+Practice: 1. Create and run a JavaScript file with Node.js. 2. Print
+your Node.js version and current working directory. 3. Use node:os to
+print the platform. 4. Explain the difference between browser JavaScript
+and Node.js.
+
+============================================================ TOPIC 3 —
+WHY NODE.JS?
+============================================================
+
+3.1 Why do developers use Node.js?
+
+Node.js is popular for building backend services because it combines
+JavaScript with an event-driven architecture and non-blocking I/O APIs.
+
+Important advantages include:
+
+-   JavaScript across frontend and backend: teams can use the same
+    language across much of the application.
+-   Non-blocking I/O: the application can continue handling other work
+    while many I/O operations are pending.
+-   Event-driven architecture: callbacks, promises, and events are used
+    to coordinate asynchronous work.
+-   Large ecosystem: npm provides a large collection of reusable
+    packages.
+-   Good fit for I/O-heavy applications: APIs that spend much of their
+    time waiting for databases, networks, or files can benefit from
+    Node.js’s concurrency model.
+-   Cross-platform: Node.js runs on Linux, macOS, and Windows.
+-   Real-time capabilities: it can support WebSockets and other
+    long-lived connections.
+
+3.2 JavaScript on both frontend and backend
+
+For a React frontend and Node.js backend, developers can share: -
+Language knowledge. - Some validation logic. - Types and interfaces when
+using TypeScript. - Data models and utility functions, where
+appropriate.
+
+Example frontend:
+
+const response = await fetch(“/api/users”); const users = await
+response.json();
+
+Example backend:
+
+app.get(“/api/users”, async (req, res) => { const users = await
+userService.getAllUsers(); res.json(users); });
+
+The frontend sends a request; the backend processes it and returns data.
+
+3.3 Why is Node.js good for I/O-heavy applications?
+
+I/O means input/output. Common I/O operations include: - Reading a
+file. - Querying PostgreSQL. - Calling an external API. - Reading from
+or writing to a network socket.
+
+Many backend requests spend time waiting for these operations to finish.
+Node.js can initiate asynchronous I/O and continue processing other
+callbacks or requests while the operation is pending.
+
+This does not mean every operation is automatically fast. CPU-heavy
+JavaScript can still block the event loop.
+
+3.4 Node.js is not ideal for every workload
+
+Node.js has tradeoffs.
+
+Potential challenges: - CPU-intensive JavaScript can block the event
+loop. - Developers must understand asynchronous programming. - Poorly
+managed promises and errors can create bugs. - Some native dependencies
+can complicate deployment across operating systems. - A single process
+may not fully use every CPU core without additional processes or
+workers.
+
+CPU-heavy work such as large image transformations, complex
+calculations, or intensive data processing may need worker threads,
+separate services, native libraries, or another architecture.
+
+3.5 Node.js vs. traditional thread-per-request models
+
+Some server architectures use a thread or worker per request or
+connection. Node.js commonly uses an event-driven model in which a
+JavaScript event loop coordinates callbacks while I/O work is handled
+asynchronously.
+
+Neither model is universally better. The correct choice depends on
+workload, libraries, team skills, operational requirements, and
+performance characteristics.
+
+3.6 Example: calling an external API
+
+A simplified Node.js example:
+
+async function getExternalData() { const response = await
+fetch(“https://jsonplaceholder.typicode.com/users”); const users = await
+response.json();
+
+console.log(users); }
+
+getExternalData().catch(console.error);
+
+The fetch operation is asynchronous. While the network request is
+pending, Node.js can process other work.
+
+3.7 Common applications built with Node.js
+
+-   E-commerce APIs.
+-   User-management services.
+-   Chat applications.
+-   Notification services.
+-   Real-time dashboards.
+-   Streaming and collaboration services.
+-   Backend services for mobile applications.
+
+3.8 Interview questions
+
+Q: Why is Node.js popular for backend development? A: It offers
+JavaScript on the server, an event-driven model, non-blocking I/O APIs,
+and a large npm ecosystem.
+
+Q: Is Node.js suitable for CPU-intensive tasks? A: A CPU-intensive task
+running on the main JavaScript thread can block the event loop. Worker
+threads, separate processes, native code, or dedicated services may be
+more suitable.
+
+Q: What kinds of applications suit Node.js? A: Many I/O-heavy APIs,
+real-time applications, and services that handle numerous concurrent
+connections.
+
+Q: Does Node.js make every application faster? A: No. Performance
+depends on the workload, implementation, database, network,
+architecture, and deployment.
+
+Practice: 1. Give three examples of I/O operations. 2. Explain why
+Node.js can be useful for API servers. 3. Explain one limitation of
+Node.js. 4. Compare an I/O-heavy task with a CPU-heavy task.
+
+============================================================ TOPIC 4 —
+HOW NODE.JS WORKS
+============================================================
+
+4.1 High-level architecture
+
+Node.js combines several important pieces:
+
+-   V8: executes JavaScript.
+-   Node.js APIs: expose functionality such as filesystem, networking,
+    timers, and process operations.
+-   libuv: provides the event loop and important asynchronous I/O and
+    thread-pool functionality.
+-   Operating system: performs many low-level networking and filesystem
+    operations.
+-   Event loop: coordinates the execution of JavaScript callbacks and
+    other scheduled work.
+
+Simplified view:
+
+Your JavaScript code | v Node.js APIs | +—— V8 executes JavaScript | +——
+libuv coordinates event loop and async work | +—— Operating system
+handles supported I/O | v Callbacks / promise continuations are
+scheduled | v JavaScript runs when the event loop can process the work
+
+This is a simplified conceptual diagram. The exact internal path depends
+on the API and operating system.
+
+4.2 What is V8?
+
+V8 is Google’s open-source JavaScript engine. Node.js uses V8 to parse,
+compile, optimize, and execute JavaScript.
+
+V8 is discussed in detail in Topic 5.
+
+4.3 What is libuv?
+
+libuv is a library used by Node.js for asynchronous I/O and event-loop
+functionality.
+
+It provides: - Event-loop implementation. - Asynchronous networking
+support. - Filesystem operation support. - A worker thread pool for
+certain operations. - Cross-platform abstractions.
+
+Not every asynchronous operation uses the libuv thread pool. For
+example, network I/O is generally handled using operating-system
+facilities rather than sending every socket operation to the thread
+pool.
+
+4.4 What happens when Node.js receives a request?
+
+Consider a backend API that queries PostgreSQL.
+
+1.  A client sends an HTTP request.
+2.  Node.js receives the network event.
+3.  JavaScript request-handling code executes.
+4.  The application starts a database operation.
+5.  The database driver and underlying networking system manage the
+    operation asynchronously.
+6.  JavaScript can process other ready work while waiting.
+7.  When the database result becomes available, the relevant
+    continuation or callback is scheduled.
+8.  JavaScript processes the result and sends an HTTP response.
+
+The exact implementation depends on the driver and its APIs.
+
+4.5 Synchronous vs. asynchronous code
+
+Synchronous example:
+
+console.log(“First”); console.log(“Second”); console.log(“Third”);
+
+Output:
+
+First Second Third
+
+Each statement runs in sequence.
+
+Asynchronous example:
+
+console.log(“First”);
+
+setTimeout(() => { console.log(“Second”); }, 1000);
+
+console.log(“Third”);
+
+Typical output:
+
+First Third Second
+
+The timer callback is scheduled to run later. The JavaScript code after
+setTimeout continues without waiting for the timer.
+
+4.6 Callback example
+
+function getUser(callback) { setTimeout(() => { callback({ id: 1, name:
+“Rahul” }); }, 1000); }
+
+console.log(“Request started”);
+
+getUser((user) => { console.log(“User received:”, user); });
+
+console.log(“Other work continues”);
+
+Typical output:
+
+Request started Other work continues User received: { id: 1, name:
+‘Rahul’ }
+
+4.7 Promise example
+
+function getUser() { return new Promise((resolve) => { setTimeout(() =>
+{ resolve({ id: 1, name: “Rahul” }); }, 1000); }); }
+
+console.log(“Start”);
+
+getUser().then((user) => { console.log(user); });
+
+console.log(“Continue”);
+
+Promises represent the eventual result or failure of an asynchronous
+operation.
+
+4.8 async/await example
+
+async function showUser() { console.log(“Start”);
+
+const user = await getUser();
+
+console.log(user); }
+
+showUser();
+
+async/await provides syntax that makes promise-based code easier to
+read. Await pauses the execution of that async function until the
+promise settles; it does not block the entire Node.js process.
+
+4.9 Important: asynchronous does not mean parallel JavaScript
+
+JavaScript code in a given Node.js isolate normally runs one piece at a
+time on its event-loop thread. Asynchronous I/O allows the process to
+make progress on other work while an operation is pending. Worker
+threads and separate processes can execute JavaScript in parallel.
+
+4.10 Interview questions
+
+Q: What are the main components of Node.js architecture? A: V8 executes
+JavaScript; Node.js APIs expose runtime functionality; libuv supports
+the event loop and asynchronous I/O; the operating system performs
+low-level operations.
+
+Q: What is libuv? A: A cross-platform library used by Node.js for
+event-loop and asynchronous I/O functionality, including a worker thread
+pool for certain tasks.
+
+Q: Does every asynchronous operation use the thread pool? A:
+No. Different APIs use different mechanisms. Network I/O is generally
+handled through operating-system facilities, while certain filesystem,
+DNS, and other operations may use the thread pool.
+
+Q: What does await do? A: It suspends the current async function until
+the awaited promise settles, allowing the rest of the JavaScript
+environment to continue processing work.
+
+Practice: 1. Draw a simplified Node.js architecture diagram. 2. Explain
+V8 and libuv. 3. Run the synchronous and asynchronous examples. 4.
+Explain why async/await does not block the entire process.
+
+============================================================ TOPIC 5 —
+V8 ENGINE ============================================================
+
+5.1 What is V8?
+
+V8 is an open-source JavaScript engine developed by Google. It executes
+JavaScript and WebAssembly. Node.js uses V8 to run JavaScript outside
+the browser.
+
+V8 is responsible for important engine tasks such as: - Parsing
+JavaScript. - Producing internal representations of code. - Executing
+JavaScript. - Optimizing frequently executed code. - Managing JavaScript
+memory and garbage collection.
+
+V8 is not the entire Node.js runtime. Node.js adds APIs and runtime
+functionality around the engine.
+
+5.2 How does V8 execute JavaScript?
+
+A simplified explanation:
+
+1.  Source code is provided.
+2.  V8 parses the source and checks its syntax.
+3.  V8 creates internal representations used by the engine.
+4.  JavaScript can be executed through interpreter and compiler
+    components.
+5.  Frequently executed code may be optimized.
+6.  If assumptions used for optimization stop being valid, V8 may
+    deoptimize code and use a less optimized path.
+
+Modern V8 uses sophisticated techniques; the exact pipeline changes over
+time. Avoid thinking of it as a simple one-time conversion of all
+JavaScript into machine code.
+
+5.3 Just-in-time compilation (JIT)
+
+JIT means Just-In-Time compilation.
+
+A JIT compiler can compile code during program execution rather than
+requiring all code to be compiled ahead of time.
+
+V8 uses interpreter and optimizing compiler technologies to execute
+JavaScript efficiently.
+
+The benefit is that frequently executed code may be optimized based on
+observed runtime behavior.
+
+5.4 Example of a frequently executed function
+
+function add(a, b) { return a + b; }
+
+for (let i = 0; i < 1000000; i++) { add(i, 10); }
+
+This function is called repeatedly. V8 can observe execution behavior
+and may optimize suitable code paths.
+
+Do not assume that every loop or function is guaranteed to receive a
+particular optimization. V8 makes decisions based on runtime behavior
+and engine heuristics.
+
+5.5 What is garbage collection?
+
+JavaScript creates objects and other values in memory. Some of that
+memory becomes unnecessary when the application no longer needs the
+values.
+
+Garbage collection is the process of identifying and reclaiming memory
+that is no longer reachable by the program.
+
+Example:
+
+let user = { name: “Rahul” };
+
+user = null;
+
+The original object may become eligible for garbage collection if no
+other references to it remain.
+
+Important: - Setting a variable to null does not immediately force
+memory to be released. - Garbage collection timing is controlled by the
+runtime. - Memory leaks can still occur if the application
+unintentionally retains references.
+
+5.6 Stack and heap (conceptual model)
+
+A simplified mental model:
+
+-   Call stack: tracks currently executing function calls and their
+    execution contexts.
+-   Heap: stores objects and other dynamically allocated data.
+
+Example:
+
+function greet() { const user = { name: “Amit” };
+console.log(user.name); }
+
+greet();
+
+The function is called and its execution is tracked by the call stack.
+The object is managed in memory. Actual engine memory layouts are more
+complex than this simplified model.
+
+5.7 What is a memory leak?
+
+A memory leak occurs when an application keeps references to data that
+it no longer needs, preventing that memory from being reclaimed.
+
+Example:
+
+const cache = [];
+
+setInterval(() => { cache.push(new Array(100000).fill(“data”)); },
+1000);
+
+This example continually adds large arrays to a global array and never
+removes them. Memory use can grow continuously.
+
+Potential causes: - Unbounded caches. - Event listeners that are never
+removed. - Timers that remain active unnecessarily. - Closures retaining
+large objects. - Long-lived collections that grow without limits.
+
+5.8 V8 vs. Node.js
+
+V8: - JavaScript engine. - Parses, compiles, and executes JavaScript. -
+Manages JavaScript heap and garbage collection.
+
+Node.js: - JavaScript runtime. - Uses V8. - Provides APIs for files,
+networking, processes, streams, and more. - Uses libuv for event-loop
+and asynchronous I/O support.
+
+5.9 Interview questions
+
+Q: What is V8? A: V8 is Google’s open-source JavaScript engine used by
+Node.js to execute JavaScript.
+
+Q: What is JIT compilation? A: Just-In-Time compilation is compilation
+performed during program execution. V8 uses interpreter and optimizing
+compiler techniques.
+
+Q: What is garbage collection? A: Automatic memory management that
+reclaims memory from objects that are no longer reachable.
+
+Q: What is a memory leak? A: A situation where an application retains
+references to data it no longer needs, causing memory usage to grow
+unnecessarily.
+
+Q: Is V8 the same as Node.js? A: No. V8 is the JavaScript engine;
+Node.js is the runtime that uses V8 and provides additional APIs and
+functionality.
+
+Practice: 1. Explain V8 in your own words. 2. Explain JIT compilation.
+3. Identify why the cache example can leak memory. 4. Explain the
+difference between stack and heap at a high level.
+
+============================================================ TOPIC 6 —
+EVENT LOOP ============================================================
+
+6.1 What is the Event Loop?
+
+The event loop is a core part of Node.js’s asynchronous execution model.
+It coordinates when scheduled callbacks and other work can run on the
+JavaScript thread.
+
+JavaScript execution in a Node.js isolate is generally single-threaded.
+The event loop allows Node.js to handle asynchronous operations without
+blocking JavaScript while those operations are pending.
+
+6.2 Why do we need the event loop?
+
+Imagine an API server receives a request that needs a database query.
+
+If JavaScript had to sit idle and block until every database query
+finished, it would be inefficient.
+
+Instead: 1. JavaScript starts the asynchronous operation. 2. The
+operation remains pending. 3. JavaScript can run other ready callbacks.
+4. When the result is available, the relevant continuation becomes
+eligible to run. 5. JavaScript processes the result.
+
+6.3 Basic example with setTimeout
+
+console.log(“One”);
+
+setTimeout(() => { console.log(“Two”); }, 1000);
+
+console.log(“Three”);
+
+Output:
+
+One Three Two
+
+Explanation: - “One” is logged. - The timer is registered. - “Three” is
+logged. - After the timer becomes eligible, its callback runs when the
+event loop can process it.
+
+A timer delay is a minimum threshold, not a guarantee that the callback
+runs at exactly that millisecond.
+
+6.4 Synchronous code vs. asynchronous callbacks
+
+Example:
+
+console.log(“Start”);
+
+setTimeout(() => { console.log(“Timer callback”); }, 0);
+
+console.log(“End”);
+
+Typical output:
+
+Start End Timer callback
+
+Even with a zero-millisecond delay, the timer callback does not
+interrupt the currently executing synchronous code.
+
+6.5 Microtasks and macrotask terminology
+
+JavaScript runtimes schedule different categories of asynchronous work.
+
+Common concepts: - Promise reactions, such as .then() callbacks, run as
+microtasks. - queueMicrotask() schedules a microtask. - Timers schedule
+callbacks for a later event-loop opportunity. - Node.js also has
+process.nextTick(), which uses a special queue with priority behavior.
+
+“Macrotask” is a common general teaching term, but Node.js documentation
+more precisely describes event-loop phases and queues.
+
+6.6 Promise example
+
+console.log(“Start”);
+
+Promise.resolve().then(() => { console.log(“Promise callback”); });
+
+console.log(“End”);
+
+Output:
+
+Start End Promise callback
+
+The synchronous statements run first. The promise reaction runs
+afterward as a microtask.
+
+6.7 process.nextTick()
+
+Node.js provides process.nextTick().
+
+Example:
+
+console.log(“Start”);
+
+process.nextTick(() => { console.log(“Next tick callback”); });
+
+Promise.resolve().then(() => { console.log(“Promise callback”); });
+
+console.log(“End”);
+
+In typical Node.js execution:
+
+Start End Next tick callback Promise callback
+
+The next-tick queue is processed before the event loop continues to
+other phases. Excessive recursive use of process.nextTick() can starve
+I/O and other work.
+
+6.8 Event-loop phases
+
+A simplified view of the major libuv event-loop phases:
+
+1.  Timers: process eligible setTimeout and setInterval callbacks.
+2.  Pending callbacks: certain system-level callbacks deferred to this
+    phase.
+3.  Idle/prepare: internal libuv work.
+4.  Poll: retrieve and process I/O events; may wait for I/O when
+    appropriate.
+5.  Check: process setImmediate callbacks.
+6.  Close callbacks: process certain close events, such as socket close
+    callbacks.
+
+Node.js also processes microtasks and next-tick callbacks at defined
+points between JavaScript callback execution. The full scheduling
+details are more nuanced than a simple six-step loop.
+
+6.9 setTimeout vs. setImmediate
+
+setTimeout(callback, delay) schedules a callback after a minimum delay
+threshold.
+
+setImmediate(callback) schedules a callback for the check phase.
+
+Example:
+
+setTimeout(() => { console.log(“Timeout”); }, 0);
+
+setImmediate(() => { console.log(“Immediate”); });
+
+When called from the main module, the relative order can vary depending
+on timing and environment. Do not assume one always runs first.
+
+Inside an I/O callback, setImmediate is generally scheduled to run in
+the check phase after the poll phase, while a zero-delay timer runs in a
+timers phase.
+
+6.10 Why can the event loop be blocked?
+
+Example:
+
+console.log(“Start”);
+
+const start = Date.now();
+
+while (Date.now() - start < 5000) { // Intentionally block the
+JavaScript thread. }
+
+console.log(“End”);
+
+During this loop, the JavaScript thread cannot process other JavaScript
+callbacks in the same isolate. Requests and timers that need JavaScript
+execution can be delayed.
+
+Avoid long-running synchronous work in request handlers.
+
+6.11 Interview questions
+
+Q: What is the event loop? A: It coordinates the execution of scheduled
+callbacks and asynchronous work in Node.js.
+
+Q: Why does setTimeout with 0 not run immediately? A: The callback is
+scheduled for a later event-loop opportunity, after the current
+synchronous JavaScript finishes.
+
+Q: What is a microtask? A: A high-priority scheduled callback category
+that includes promise reactions and queueMicrotask callbacks.
+
+Q: What is process.nextTick()? A: A Node.js API that schedules a
+callback to run after the current operation, before the event loop
+continues to its next phase.
+
+Q: What happens if the event loop is blocked? A: The JavaScript thread
+cannot process other callbacks, so requests, timers, and other work
+requiring that thread are delayed.
+
+Practice: 1. Predict the output of the setTimeout example. 2. Predict
+the output of the Promise example. 3. Explain the difference between
+setTimeout and setImmediate. 4. Explain why a long synchronous loop can
+affect an API server.
+
+============================================================ TOPIC 7 —
+SINGLE THREAD
+============================================================
+
+7.1 What does single-threaded mean in Node.js?
+
+JavaScript code in a typical Node.js application runs on one main
+JavaScript thread per isolate.
+
+This means that one JavaScript callback runs at a time on that thread.
+The event loop coordinates when callbacks execute.
+
+However, saying “Node.js is single-threaded” without qualification is
+incomplete. Node.js also uses: - Operating-system facilities for
+asynchronous I/O. - A libuv worker thread pool for certain operations. -
+Worker threads when explicitly created. - Multiple processes or
+application instances when deployed that way.
+
+7.2 What is a thread?
+
+A thread is an execution path within a process. A process can contain
+one or multiple threads.
+
+A thread executes instructions. Multiple threads can allow work to run
+concurrently and, on multiple CPU cores, potentially in parallel.
+
+7.3 Main JavaScript thread
+
+Example:
+
+console.log(“First”);
+
+function calculate() { console.log(“Calculating…”); }
+
+calculate();
+
+console.log(“Last”);
+
+Output:
+
+First Calculating… Last
+
+These JavaScript statements execute sequentially on the current
+JavaScript thread.
+
+7.4 Does single-threaded mean Node.js handles only one request at a
+time?
+
+No.
+
+Node.js can manage many concurrent connections because many requests
+spend time waiting for I/O. While one request is waiting for a database
+or network operation, the event loop can process other ready work.
+
+This is concurrency, not necessarily parallel execution of JavaScript
+callbacks.
+
+7.5 What is concurrency?
+
+Concurrency means multiple tasks can make progress over overlapping
+periods. Their steps may be interleaved.
+
+Example: - Request A starts a database query. - Request B is received
+and processed. - Request C starts an external API request. - The
+database result for A becomes available. - The application processes A’s
+result.
+
+Only one JavaScript callback runs at a time on the same isolate, but the
+tasks can overlap while I/O is pending.
+
+7.6 What is parallelism?
+
+Parallelism means multiple operations execute at the same time, for
+example on different CPU cores.
+
+Node.js can use: - Worker threads. - Child processes. - Multiple Node.js
+processes. - Native libraries that perform work outside the main
+JavaScript thread.
+
+7.7 Worker Threads
+
+The worker_threads module allows JavaScript to run in separate threads.
+
+It is useful for CPU-intensive JavaScript tasks that should not block
+the main event loop.
+
+A simplified example using two files:
+
+main.js:
+
+import { Worker } from “node:worker_threads”;
+
+const worker = new Worker( new URL(“./worker.js”, import.meta.url) );
+
+worker.on(“message”, (result) => { console.log(“Result from worker:”,
+result); });
+
+worker.on(“error”, console.error);
+
+worker.on(“exit”, (code) => { if (code !== 0) { console.error(“Worker
+stopped with exit code”, code); } });
+
+worker.js:
+
+import { parentPort } from “node:worker_threads”;
+
+let total = 0;
+
+for (let i = 0; i < 100000000; i++) { total += i; }
+
+parentPort.postMessage(total);
+
+Run:
+
+node main.js
+
+The worker performs the calculation separately from the main JavaScript
+thread.
+
+For production workloads, consider worker lifecycle, error handling,
+task distribution, and whether a worker pool is more appropriate than
+creating a new worker for every task.
+
+7.8 Child processes
+
+Node.js also provides child-process APIs for creating separate
+processes.
+
+Common APIs include: - spawn() - exec() - execFile() - fork()
+
+Child processes have separate process memory and can be useful for
+running other programs or isolating workloads.
+
+7.9 When should you use worker threads?
+
+Consider them for: - CPU-intensive calculations. - Data processing that
+takes significant CPU time. - Image or file transformations when
+suitable libraries support worker execution. - Tasks that would
+otherwise block the event loop.
+
+They are not normally necessary for every database query or HTTP
+request.
+
+7.10 Interview questions
+
+Q: Is Node.js single-threaded? A: JavaScript execution in a typical
+Node.js isolate runs on a main JavaScript thread, but Node.js also uses
+worker threads, a libuv thread pool, operating-system asynchronous I/O,
+and multiple processes.
+
+Q: Can Node.js handle multiple requests concurrently? A: Yes.
+Asynchronous I/O allows many requests to be in progress while JavaScript
+processes ready callbacks.
+
+Q: What is the difference between concurrency and parallelism? A:
+Concurrency is overlapping progress among tasks; parallelism is
+simultaneous execution.
+
+Q: What are worker threads? A: They allow JavaScript to execute in
+separate threads and are useful for CPU-intensive tasks.
+
+Practice: 1. Explain why Node.js can handle multiple connections despite
+a main JavaScript thread. 2. Compare concurrency and parallelism. 3.
+Identify a workload suitable for worker threads. 4. Run the
+worker-thread example.
+
+============================================================ TOPIC 8 —
+NON-BLOCKING I/O
+============================================================
+
+8.1 What is I/O?
+
+I/O means Input/Output. It is communication between a program and
+something outside its immediate computation.
+
+Examples: - Reading or writing files. - Sending HTTP requests. -
+Receiving network data. - Querying PostgreSQL. - Communicating with
+Redis. - Reading from a socket.
+
+8.2 What is blocking I/O?
+
+A blocking operation prevents the current JavaScript thread from
+continuing until the operation finishes.
+
+Example using synchronous file reading:
+
+import fs from “node:fs”;
+
+console.log(“Start”);
+
+const data = fs.readFileSync(“example.txt”, “utf8”);
+
+console.log(data); console.log(“End”);
+
+readFileSync blocks the JavaScript thread until the file read completes.
+
+If the file is large or the storage is slow, other JavaScript work in
+the same isolate is delayed.
+
+8.3 What is non-blocking I/O?
+
+Non-blocking I/O lets the program initiate an operation and continue
+executing other work while the operation is pending. The result is
+handled later through a callback, promise, or another asynchronous
+mechanism.
+
+Example using asynchronous file reading with a callback:
+
+import fs from “node:fs”;
+
+console.log(“Start”);
+
+fs.readFile(“example.txt”, “utf8”, (error, data) => { if (error) {
+console.error(error); return; }
+
+console.log(data); });
+
+console.log(“End”);
+
+Typical output:
+
+Start End (contents of example.txt)
+
+The file operation is started, and the JavaScript thread continues. The
+callback runs when the operation completes.
+
+8.4 Promise-based filesystem example
+
+import { readFile } from “node:fs/promises”;
+
+async function readExample() { try { const data = await
+readFile(“example.txt”, “utf8”); console.log(data); } catch (error) {
+console.error(“Unable to read file:”, error); } }
+
+readExample();
+
+The promise-based API is often convenient for modern code.
+
+8.5 Blocking vs. non-blocking comparison
+
+Blocking:
+
+console.log(“A”); const data = fs.readFileSync(“file.txt”, “utf8”);
+console.log(“B”);
+
+The second log waits for the file operation.
+
+Non-blocking:
+
+console.log(“A”); fs.readFile(“file.txt”, “utf8”, (error, data) => {
+console.log(“File read complete”); }); console.log(“B”);
+
+The second log does not wait for the file operation.
+
+8.6 Why non-blocking I/O matters for backend APIs
+
+Imagine a server handles 100 requests. Many of those requests need
+database or network operations.
+
+If the JavaScript thread blocks while waiting for every operation, the
+server cannot efficiently process other ready JavaScript work.
+
+With asynchronous I/O: - The request starts an operation. - The
+operation waits outside the active JavaScript execution. - The event
+loop can process other work. - The result is handled when ready.
+
+This is one reason Node.js is effective for many I/O-heavy services.
+
+8.7 Example with PostgreSQL
+
+A typical promise-based PostgreSQL query using the pg package:
+
+import pg from “pg”;
+
+const { Pool } = pg;
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+async function getUsers() { try { const result = await pool.query(
+“SELECT id, name, email FROM users” );
+
+    console.log(result.rows);
+
+} catch (error) { console.error(“Database query failed:”, error); } }
+
+getUsers();
+
+The database query is asynchronous. Await pauses this function’s
+continuation until the promise settles; it does not block the entire
+Node.js event loop while the database responds.
+
+8.8 Important: non-blocking does not mean no waiting
+
+The operation still takes time. The difference is that the JavaScript
+thread can perform other work while the I/O operation is pending.
+
+8.9 Important: CPU-heavy code can still block
+
+Example:
+
+function heavyCalculation() { let total = 0;
+
+for (let i = 0; i < 1_000_000_000; i++) { total += i; }
+
+return total; }
+
+heavyCalculation();
+
+This synchronous loop consumes CPU on the JavaScript thread. It blocks
+other JavaScript callbacks in the same isolate until it completes.
+
+Use worker threads or another architecture for suitable CPU-heavy work.
+
+8.10 Interview questions
+
+Q: What is blocking I/O? A: An operation that prevents the current
+thread from continuing until the operation completes.
+
+Q: What is non-blocking I/O? A: An operation that allows the program to
+continue other work while the I/O operation is pending.
+
+Q: What is the difference between readFile and readFileSync? A: readFile
+is asynchronous and provides the result later; readFileSync blocks the
+JavaScript thread until the read completes.
+
+Q: Does await block Node.js? A: Await pauses the current async function,
+not the entire event loop.
+
+Q: Does non-blocking I/O make CPU-heavy JavaScript non-blocking? A:
+No. CPU-heavy synchronous JavaScript can still block the event loop.
+
+Practice: 1. Compare readFileSync and readFile. 2. Run both examples and
+observe the order of output. 3. Explain why asynchronous PostgreSQL
+queries are useful. 4. Explain why a long CPU loop still blocks Node.js.
+
+============================================================ TOPIC 9 —
+MODULES ============================================================
+
+9.1 What is a module?
+
+A module is a reusable unit of code. It helps organize an application
+into separate files and expose functionality that other files can use.
+
+Instead of writing an entire backend in one large file, you can separate
+it into modules.
+
+Example project structure:
+
+project/ src/ server.js routes/ userRoutes.js controllers/
+userController.js services/ userService.js utils/ formatDate.js
+package.json
+
+Each file can have a focused responsibility.
+
+Benefits: - Code organization. - Reusability. - Easier testing. - Easier
+maintenance. - Separation of concerns. - Clearer ownership of
+functionality.
+
+9.2 Types of Node.js modules
+
+Three useful categories:
+
+1.  Built-in modules: provided by Node.js, such as node:fs and
+    node:http.
+2.  Local modules: files created inside your project.
+3.  Third-party modules: packages installed through npm, such as express
+    and pg.
+
+9.3 CommonJS modules
+
+CommonJS is a traditional Node.js module system.
+
+Export using module.exports:
+
+// math.js function add(a, b) { return a + b; }
+
+function subtract(a, b) { return a - b; }
+
+module.exports = { add, subtract };
+
+Import using require():
+
+// app.js const math = require(“./math”);
+
+console.log(math.add(10, 5)); console.log(math.subtract(10, 5));
+
+Output:
+
+15 5
+
+You can also destructure:
+
+const { add, subtract } = require(“./math”);
+
+9.4 module.exports vs. exports
+
+module.exports is the actual value exported by a CommonJS module.
+
+exports is initially a reference to module.exports and is a convenient
+way to add properties.
+
+Example:
+
+exports.add = (a, b) => a + b;
+
+This works because it adds a property to the shared exported object.
+
+But this can break the relationship:
+
+exports = { add: (a, b) => a + b };
+
+Reassigning exports alone does not replace module.exports.
+
+For a complete replacement, use:
+
+module.exports = { add: (a, b) => a + b };
+
+9.5 ES Modules (ESM)
+
+ES modules are the standardized JavaScript module system.
+
+Use export to expose functionality:
+
+// math.js export function add(a, b) { return a + b; }
+
+export function subtract(a, b) { return a - b; }
+
+Import with import:
+
+// app.js import { add, subtract } from “./math.js”;
+
+console.log(add(10, 5)); console.log(subtract(10, 5));
+
+To use ESM syntax in .js files, add this to package.json:
+
+{ “type”: “module” }
+
+Alternatively, use .mjs files.
+
+9.6 Named exports
+
+A module can export multiple named values:
+
+// user.js export const userName = “Rahul”;
+
+export function getUser() { return { id: 1, name: userName }; }
+
+Import them:
+
+import { userName, getUser } from “./user.js”;
+
+console.log(userName); console.log(getUser());
+
+The imported names must match the exported names unless you use aliases.
+
+9.7 Default exports
+
+A module can have a default export:
+
+// user.js export default function getUser() { return { id: 1, name:
+“Rahul” }; }
+
+Import it:
+
+import getUser from “./user.js”;
+
+console.log(getUser());
+
+A default export can be imported using a locally chosen name.
+
+9.8 Named export vs. default export
+
+Named export:
+
+export const appName = “My API”;
+
+Import:
+
+import { appName } from “./config.js”;
+
+Default export:
+
+export default function startServer() {}
+
+Import:
+
+import startServer from “./server.js”;
+
+A module can have multiple named exports and at most one default export.
+
+9.9 Built-in module example
+
+import path from “node:path”;
+
+const fullPath = path.join(“src”, “controllers”, “user.js”);
+
+console.log(fullPath);
+
+No npm installation is required for built-in modules.
+
+9.10 Third-party module example
+
+Install Express:
+
+npm install express
+
+Use it:
+
+import express from “express”;
+
+const app = express();
+
+app.get(“/”, (req, res) => { res.send(“Hello”); });
+
+app.listen(3000);
+
+Express is a third-party package, not a built-in Node.js module.
+
+9.11 Module caching
+
+Node.js caches loaded CommonJS modules. When the same resolved module is
+required again, Node.js generally returns the cached exports instead of
+executing the module from scratch.
+
+This helps avoid repeatedly evaluating the same module.
+
+Example:
+
+// counter.js console.log(“Counter module loaded”);
+
+module.exports = { value: 10 };
+
+If two files require the same resolved CommonJS module, the
+initialization normally occurs once per module cache entry.
+
+ES modules also have module identity and caching behavior.
+
+9.12 Why split backend code into routes, controllers, and services?
+
+A common structure:
+
+-   Routes: define URLs and HTTP methods.
+-   Controllers: handle HTTP request and response details.
+-   Services: contain business logic.
+-   Models or repositories: handle data access.
+-   Middleware: perform reusable request processing such as
+    authentication.
+-   Utils: contain reusable helper functions.
+
+Example:
+
+// routes/userRoutes.js import express from “express”; import { getUsers
+} from “../controllers/userController.js”;
+
+const router = express.Router();
+
+router.get(“/”, getUsers);
+
+export default router;
+
+// controllers/userController.js import { findAllUsers } from
+“../services/userService.js”;
+
+export async function getUsers(req, res, next) { try { const users =
+await findAllUsers(); res.status(200).json(users); } catch (error) {
+next(error); } }
+
+// services/userService.js export async function findAllUsers() { // In
+a real application, call the repository/database here. return [ { id: 1,
+name: “Rahul” }, { id: 2, name: “Amit” } ]; }
+
+This separation makes the code easier to test and maintain.
+
+9.13 CommonJS vs. ES Modules
+
+CommonJS: - require() to import. - module.exports or exports to
+export. - Common in older Node.js codebases. - .cjs explicitly means
+CommonJS.
+
+ES Modules: - import to import. - export to export. - Standard
+JavaScript module syntax. - “type”: “module” makes .js files ESM within
+that package scope. - .mjs explicitly means ESM.
+
+Do not mix module systems carelessly. Interoperability is supported in
+some situations, but the behavior and syntax differ.
+
+9.14 Interview questions
+
+Q: What is a module? A: A reusable unit of code that can expose
+functionality to other parts of an application.
+
+Q: What are the main types of Node.js modules? A: Built-in modules,
+local modules, and third-party modules.
+
+Q: What is CommonJS? A: A Node.js module system that uses require() and
+module.exports.
+
+Q: What are ES modules? A: The standardized JavaScript module system
+that uses import and export.
+
+Q: What is the difference between module.exports and exports? A:
+module.exports is the actual exported value. exports is initially a
+reference to it; reassigning exports alone does not replace
+module.exports.
+
+Q: What is module caching? A: Node.js reuses a previously loaded
+module’s cached result for subsequent loads of the same resolved module.
+
+Practice: 1. Create a math module with add and subtract functions. 2.
+Export and import it using CommonJS. 3. Repeat using ES modules. 4.
+Create a config module with named exports. 5. Create a module with a
+default export. 6. Explain why routes, controllers, and services are
+separated.
+
+============================================================ TOPIC 10 —
+NPM ============================================================
+
+10.1 What is npm?
+
+npm commonly refers to the package manager used with Node.js. It helps
+developers: - Install packages. - Update packages. - Remove packages. -
+Manage dependencies. - Run project scripts. - Manage package metadata. -
+Publish packages to the npm registry.
+
+npm consists of the npm CLI, the npm registry, and the package
+ecosystem.
+
+Check versions:
+
+node -v npm -v
+
+10.2 What is a package?
+
+A package is reusable code distributed with metadata. For example: -
+express: web framework. - pg: PostgreSQL client for Node.js. - dotenv:
+loads environment variables from .env. - nodemon: development utility
+that restarts a process when files change.
+
+10.3 Initialize a project
+
+mkdir my-backend cd my-backend npm init
+
+The interactive command asks for project details and creates
+package.json.
+
+To accept defaults:
+
+npm init -y
+
+10.4 Install a package
+
+npm install express
+
+Short form:
+
+npm i express
+
+This installs Express and normally adds it to dependencies in
+package.json.
+
+Install multiple packages:
+
+npm install express pg dotenv
+
+10.5 Install development dependencies
+
+npm install –save-dev nodemon
+
+Short form:
+
+npm i -D nodemon
+
+Development dependencies are generally tools used during development,
+testing, linting, or building rather than required by the production
+runtime.
+
+10.6 Install a specific version
+
+npm install express@5.1.0
+
+This requests that specific version. The actual version should be
+selected based on compatibility and project requirements.
+
+10.7 What is node_modules?
+
+node_modules is the directory where npm installs project packages and
+their dependencies.
+
+It can become large because packages often depend on other packages.
+
+Normally: - Do not commit node_modules to Git. - Keep package.json and
+package-lock.json in Git. - Recreate node_modules using npm install or
+npm ci.
+
+10.8 What is package-lock.json?
+
+package-lock.json records the resolved dependency tree and exact package
+versions and integrity information.
+
+It helps make installations more reproducible across developer machines
+and automated environments.
+
+10.9 npm install vs. npm ci
+
+npm install: - Installs dependencies based on package.json and the
+lockfile. - Can update package-lock.json when dependency requirements
+change. - Common during normal development.
+
+npm ci: - Intended for clean, reproducible installs. - Requires a
+compatible package-lock.json or npm-shrinkwrap.json. - Removes existing
+node_modules before installing. - Does not update the lockfile. - Common
+in CI/CD pipelines.
+
+10.10 dependencies vs. devDependencies
+
+dependencies: Packages required by the application at runtime.
+
+Example: npm install express pg dotenv
+
+devDependencies: Packages used only during development or build/test
+workflows.
+
+Example: npm install –save-dev nodemon eslint
+
+Production-only installation:
+
+npm install –omit=dev
+
+Be careful: build tools may be devDependencies but still be needed
+during a build stage.
+
+10.11 Semantic versioning
+
+A version commonly follows:
+
+MAJOR.MINOR.PATCH
+
+Example: 2.4.7
+
+-   MAJOR: breaking changes.
+-   MINOR: backward-compatible features.
+-   PATCH: backward-compatible fixes.
+
+Version range symbols:
+
+^1.2.3 allows compatible updates below 2.0.0 under SemVer rules. ~1.2.3
+allows patch-level updates below 1.3.0. 1.2.3 requests that exact
+version.
+
+Actual resolution is recorded in the lockfile.
+
+10.12 Update packages
+
+npm update
+
+Check outdated packages:
+
+npm outdated
+
+Install a particular package version:
+
+npm install express@latest
+
+Use care when updating major versions because they may introduce
+breaking changes.
+
+10.13 Remove packages
+
+npm uninstall express
+
+This removes the package from node_modules and updates package.json and
+the lockfile.
+
+10.14 npm scripts
+
+Example package.json:
+
+{ “scripts”: { “start”: “node server.js”, “dev”: “node –watch
+server.js”, “test”: “node –test” } }
+
+Run:
+
+npm start npm run dev npm test
+
+For most custom script names, use npm run . The start and test scripts
+have convenient npm command forms.
+
+10.15 Local vs. global installation
+
+Local installation:
+
+npm install eslint
+
+The package is installed in the current project and is available to
+project scripts.
+
+Global installation:
+
+npm install -g some-cli-tool
+
+This installs a command-line tool globally for the environment managed
+by that npm installation.
+
+Prefer local project dependencies for tools that should have consistent
+versions across a team.
+
+10.16 What is npx?
+
+npx can execute package binaries, often without requiring a permanent
+global installation.
+
+Example:
+
+npx eslint .
+
+For a project dependency, npm scripts can also find local binaries
+automatically.
+
+10.17 npm audit
+
+Check for known security advisories affecting installed dependencies:
+
+npm audit
+
+Attempt compatible automatic fixes:
+
+npm audit fix
+
+Review changes carefully. Do not blindly force major dependency upgrades
+because they can break compatibility.
+
+10.18 Useful npm commands
+
+npm init -y Initialize project npm install Install project dependencies
+npm install express Install a package npm install -D eslint Install a
+development dependency npm uninstall express Remove a package npm update
+Update compatible packages npm outdated List outdated packages npm list
+Show installed dependency tree npm list –depth=0 Show direct
+dependencies npm ci Clean lockfile-based installation npm audit Check
+known dependency advisories npm run List available scripts npm cache
+verify Verify npm cache
+
+10.19 Common npm errors
+
+ERESOLVE: A dependency resolution conflict. Review peer dependency
+requirements and package compatibility. Avoid using –force or
+–legacy-peer-deps without understanding the consequences.
+
+EINTEGRITY: A downloaded package does not match the expected integrity
+checksum. Check network/proxy issues and npm cache. npm cache verify can
+help diagnose cache integrity.
+
+ENOENT: A file or directory was not found. Check the working directory,
+file path, and package configuration.
+
+Missing script: The requested script is not defined in package.json.
+Check the scripts property.
+
+Cannot find module: The package may not be installed, the import path
+may be wrong, or module configuration may be incorrect.
+
+10.20 Example backend dependencies
+
+npm install express pg dotenv
+
+Example:
+
+import “dotenv/config”; import express from “express”; import pg from
+“pg”;
+
+const { Pool } = pg;
+
+const app = express(); app.use(express.json());
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+app.get(“/users”, async (req, res, next) => { try { const result = await
+pool.query( “SELECT id, name, email FROM users” );
+
+    res.json(result.rows);
+
+} catch (error) { next(error); } });
+
+app.listen(3000, () => { console.log(“Server running on port 3000”); });
+
+This example assumes a PostgreSQL database and a users table exist.
+
+10.21 Interview questions
+
+Q: What is npm? A: npm is the package manager and CLI commonly used with
+Node.js to install and manage packages and run scripts.
+
+Q: What is node_modules? A: The directory where installed packages and
+their dependencies are stored.
+
+Q: What is package-lock.json? A: A lockfile recording the resolved
+dependency tree for more reproducible installations.
+
+Q: npm install vs. npm ci? A: npm install is used for normal dependency
+installation and can update the lockfile. npm ci performs a clean
+installation from a compatible lockfile and does not update it.
+
+Q: dependencies vs. devDependencies? A: Runtime packages
+vs. development/build/test-only packages.
+
+Q: What is npx? A: A tool for executing package binaries, often without
+a permanent global installation.
+
+Practice: 1. Create a project with npm init -y. 2. Install Express and
+dotenv. 3. Install ESLint as a development dependency. 4. Create start
+and dev scripts. 5. Run npm outdated and npm audit. 6. Explain
+package.json, package-lock.json, and node_modules.
+
+============================================================ TOPIC 11 —
+PACKAGE.JSON
+============================================================
+
+11.1 What is package.json?
+
+package.json is a JSON manifest describing a Node.js project or package.
+
+It can contain: - Project name. - Version. - Description. - Entry-point
+metadata. - npm scripts. - Runtime dependencies. - Development
+dependencies. - Module-system configuration. - Supported runtime
+versions. - Package publication settings. - Other package metadata.
+
+Example project structure:
+
+my-backend/ node_modules/ src/ server.js package.json package-lock.json
+.gitignore
+
+11.2 Create package.json
+
+npm init
+
+Interactive initialization.
+
+npm init -y
+
+Create a default manifest without answering each prompt.
+
+Example:
+
+{ “name”: “node-postgres-app”, “version”: “1.0.0”, “description”:
+““,”main”: “index.js”, “scripts”: { “test”: “echo "Error: no test
+specified" && exit 1” }, “keywords”: [], “author”: ““,”license”: “ISC” }
+
+The exact generated file can vary by npm version and configuration.
+
+11.3 name
+
+Identifies the project or package.
+
+Example:
+
+{ “name”: “user-management-api” }
+
+Package names generally use lowercase letters and hyphens rather than
+spaces. The name matters especially when publishing a package.
+
+11.4 version
+
+Indicates the package version.
+
+Example:
+
+{ “version”: “1.0.0” }
+
+Semantic version format:
+
+MAJOR.MINOR.PATCH
+
+-   Major: breaking changes.
+-   Minor: backward-compatible features.
+-   Patch: backward-compatible bug fixes.
+
+Commands:
+
+npm version patch npm version minor npm version major
+
+These commands update the version and may create a Git commit/tag
+depending on configuration and repository state.
+
+11.5 description
+
+A short description:
+
+{ “description”: “REST API built with Node.js, Express.js, and
+PostgreSQL” }
+
+11.6 main
+
+Traditionally identifies the primary entry point when another package
+imports this package.
+
+Example:
+
+{ “main”: “src/server.js” }
+
+It does not automatically start the application when npm start is run. A
+start script normally defines how the server is started.
+
+Example:
+
+{ “main”: “src/server.js”, “scripts”: { “start”: “node src/server.js” }
+}
+
+11.7 scripts
+
+Defines reusable commands:
+
+{ “scripts”: { “start”: “node src/server.js”, “dev”: “node –watch
+src/server.js”, “test”: “node –test”, “lint”: “eslint src” } }
+
+Run:
+
+npm start npm run dev npm test npm run lint
+
+A script only defines the command; the required tool must also be
+installed.
+
+11.8 dependencies
+
+Packages needed by the application at runtime.
+
+Example:
+
+{ “dependencies”: { “express”: “^5.1.0”, “pg”: “^8.16.0”, “dotenv”:
+“^16.6.0” } }
+
+Install:
+
+npm install express pg dotenv
+
+Use versions compatible with your project. npm updates the manifest and
+lockfile when packages are installed.
+
+11.9 devDependencies
+
+Packages needed for development, testing, linting, or build tasks.
+
+Example:
+
+{ “devDependencies”: { “eslint”: “^9.0.0”, “prettier”: “^3.0.0” } }
+
+Install:
+
+npm install –save-dev eslint prettier
+
+11.10 package.json vs. package-lock.json
+
+package.json declares dependency requirements and ranges.
+
+package-lock.json records the resolved dependency tree and versions.
+
+Keep both in version control for a typical application. Do not normally
+commit node_modules.
+
+11.11 type: CommonJS vs. ES Modules
+
+CommonJS example:
+
+const express = require(“express”);
+
+module.exports = express;
+
+ES module example:
+
+import express from “express”;
+
+export default express;
+
+To make .js files ESM by default within the package scope:
+
+{ “type”: “module” }
+
+To make .js files CommonJS by default:
+
+{ “type”: “commonjs” }
+
+The .mjs extension explicitly means ESM. The .cjs extension explicitly
+means CommonJS.
+
+Changing type in an existing application can change how .js files are
+interpreted, so do not change it without checking imports and exports
+throughout the project.
+
+11.12 engines
+
+Declares supported runtime versions:
+
+{ “engines”: { “node”: “>=22 <23” } }
+
+This does not install or switch Node.js versions. Use a version manager
+such as nvm or configure the deployment environment.
+
+11.13 private
+
+Example:
+
+{ “private”: true }
+
+This prevents accidental publication of the package through npm publish.
+
+It does not make a Git repository private and does not protect secrets.
+
+11.14 keywords and author
+
+Example:
+
+{ “keywords”: [“nodejs”, “express”, “postgresql”, “rest-api”], “author”:
+“Developer Name” }
+
+These are metadata fields, especially useful for published packages.
+
+11.15 overrides
+
+Can control selected dependency versions during npm dependency
+resolution.
+
+Example:
+
+{ “overrides”: { “some-package”: “1.2.3” } }
+
+Use this carefully. An incompatible override can break the application.
+
+11.16 Complete practical package.json example
+
+{ “name”: “node-postgres-app”, “version”: “1.0.0”, “private”: true,
+“description”: “REST API built with Node.js, Express.js, and
+PostgreSQL”, “type”: “module”, “scripts”: { “start”: “node
+src/server.js”, “dev”: “node –watch src/server.js” }, “engines”: {
+“node”: “>=22” }, “dependencies”: { “dotenv”: “^16.6.0”, “express”:
+“^5.1.0”, “pg”: “^8.16.0” } }
+
+The versions are illustrative. Keep the versions npm actually installs
+and maintain a matching package-lock.json.
+
+11.17 Practical project example
+
+Create:
+
+mkdir node-postgres-app cd node-postgres-app npm init -y npm install
+express pg dotenv mkdir src
+
+Add “type”: “module” to package.json and define:
+
+“scripts”: { “start”: “node src/server.js”, “dev”: “node –watch
+src/server.js” }
+
+Create src/server.js:
+
+import “dotenv/config”; import express from “express”; import pg from
+“pg”;
+
+const { Pool } = pg; const app = express();
+
+app.use(express.json());
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+app.get(“/”, (req, res) => { res.json({ message: “Node.js backend is
+running” }); });
+
+app.get(“/health”, async (req, res) => { try { await pool.query(“SELECT
+1”);
+
+    res.status(200).json({
+      status: "healthy",
+      database: "connected"
+    });
+
+} catch (error) { console.error(“Database health check failed:”,
+error.message);
+
+    res.status(503).json({
+      status: "unhealthy",
+      database: "disconnected"
+    });
+
+} });
+
+const PORT = process.env.PORT || 3000;
+
+const server = app.listen(PORT, () => {
+console.log(Server running on port ${PORT}); });
+
+async function shutdown() { server.close(async () => { await pool.end();
+process.exit(0); }); }
+
+process.on(“SIGINT”, shutdown); process.on(“SIGTERM”, shutdown);
+
+Create .env:
+
+PORT=3000
+DATABASE_URL=postgresql://postgres:your_password@localhost:5432/my_database
+
+Create .gitignore:
+
+node_modules/ .env
+
+Start:
+
+npm run dev
+
+The database must exist and the credentials must be correct. Never
+commit real secrets.
+
+11.18 Common mistakes
+
+-   Invalid JSON, such as trailing commas.
+-   Running an npm script that is not defined.
+-   Adding a package name to package.json without actually installing
+    it.
+-   Putting development-only tools in dependencies unnecessarily.
+-   Committing secrets in package.json or .env.
+-   Deleting package-lock.json without a reason.
+-   Changing “type” without checking module compatibility.
+-   Assuming “main” starts the server.
+
+11.19 Interview questions
+
+Q: What is package.json? A: The Node.js project/package manifest
+containing metadata, dependencies, scripts, and configuration.
+
+Q: package.json vs. package-lock.json? A: The manifest declares
+requirements; the lockfile records the resolved dependency tree.
+
+Q: dependencies vs. devDependencies? A: Runtime packages
+vs. development/build/test-only packages.
+
+Q: What does type: module do? A: It makes .js files use ES module
+interpretation by default within that package scope.
+
+Q: Does main start the server? A: No. It traditionally identifies the
+package entry point. A start script normally starts the server.
+
+Q: What does private: true do? A: It prevents npm publication of the
+package.
+
+Q: Can Node.js run without package.json? A: Yes. A simple JavaScript
+file can run directly, but package.json is useful for dependencies,
+scripts, metadata, and configuration.
+
+Practice: 1. Create a project using npm init -y. 2. Add start, dev, and
+test scripts. 3. Install express and pg as dependencies. 4. Install
+eslint as a devDependency. 5. Configure type: module. 6. Explain
+private, engines, main, and scripts.
+
+============================================================ TOPIC 12 —
+CREATING YOUR FIRST NODE.JS HTTP SERVER
+============================================================
+
+12.1 What is a server?
+
+A server is a program that listens for incoming requests and sends
+responses.
+
+Example architecture:
+
+React frontend | | HTTP request v Node.js backend | | Database query v
+PostgreSQL | | Query result v Node.js backend | | HTTP response v React
+frontend
+
+12.2 What is HTTP?
+
+HTTP stands for Hypertext Transfer Protocol. It is a protocol used by
+clients and servers to exchange information.
+
+An HTTP request contains information such as: - Method. - URL/path. -
+Headers. - Optional body.
+
+Example request:
+
+GET /users HTTP/1.1 Host: localhost:3000 Accept: application/json
+
+Example response:
+
+HTTP/1.1 200 OK Content-Type: application/json
+
+{ “message”: “Users fetched successfully” }
+
+12.3 Common HTTP methods
+
+GET: retrieve a resource. POST: create a resource or submit data for
+processing. PUT: replace a resource. PATCH: partially update a resource.
+DELETE: delete a resource. HEAD: request headers without the normal
+response body. OPTIONS: discover communication options, often used in
+CORS preflight requests.
+
+12.4 What is the node:http module?
+
+Node.js includes a built-in HTTP module. It allows developers to create
+HTTP servers without installing Express or another framework.
+
+ES module:
+
+import http from “node:http”;
+
+CommonJS:
+
+const http = require(“node:http”);
+
+The node: prefix identifies a built-in Node.js module.
+
+12.5 Create the first server
+
+Create a project:
+
+mkdir first-node-server cd first-node-server npm init -y
+
+Add to package.json:
+
+{ “type”: “module” }
+
+Create server.js:
+
+import http from “node:http”;
+
+const server = http.createServer((req, res) => { res.end(“Hello from
+Node.js Server!”); });
+
+server.listen(3000, () => { console.log(“Server running on
+http://localhost:3000”); });
+
+Run:
+
+node server.js
+
+Open:
+
+http://localhost:3000
+
+Expected response:
+
+Hello from Node.js Server!
+
+12.6 Understand http.createServer()
+
+http.createServer() creates an HTTP server.
+
+It accepts a request-listener callback. The callback receives:
+
+(req, res)
+
+req is the incoming request object. res is the outgoing response object.
+
+The callback runs when a request is received.
+
+12.7 Understand server.listen()
+
+server.listen(3000, callback) starts listening on port 3000.
+
+The callback runs when the server has successfully started listening.
+
+12.8 Request object (req)
+
+req contains information about the incoming request.
+
+req.method:
+
+const server = http.createServer((req, res) => {
+console.log(req.method); res.end(“Received”); });
+
+Possible methods include GET, POST, PUT, PATCH, and DELETE.
+
+req.url:
+
+console.log(req.url);
+
+Examples: - /users - /users/10 - /users?page=2&limit=10
+
+req.headers:
+
+console.log(req.headers);
+
+Common request headers: - content-type: format of the request body. -
+authorization: authentication credentials or token. - accept: response
+formats the client accepts. - user-agent: client information. - host:
+target host.
+
+req.socket.remoteAddress can expose the remote peer address. Behind a
+proxy, this may be the proxy address, not the original client address.
+Do not blindly trust forwarded IP headers unless the proxy setup is
+secured.
+
+12.9 Response object (res)
+
+Important response methods and properties:
+
+-   res.write(): write a response chunk.
+-   res.end(): finish the response.
+-   res.setHeader(): set a response header.
+-   res.statusCode: set the response status.
+-   res.statusMessage: set the status message.
+-   res.writeHead(): set status and headers.
+-   res.headersSent: check whether headers have been sent.
+
+12.10 res.end()
+
+const server = http.createServer((req, res) => { res.end(“Hello World”);
+});
+
+res.end() completes the response. Once ended, no more response body data
+can be written.
+
+12.11 res.write()
+
+const server = http.createServer((req, res) => { res.write(“Hello”);
+res.write(“from”); res.write(“Node.js”); res.end(); });
+
+Output:
+
+Hello from Node.js
+
+It is useful for sending response data in chunks, such as streaming.
+
+12.12 res.setHeader()
+
+const server = http.createServer((req, res) => {
+res.setHeader(“Content-Type”, “text/plain”); res.end(“Hello from
+Node.js”); });
+
+For JSON:
+
+res.setHeader(“Content-Type”, “application/json”);
+
+Other examples:
+
+res.setHeader(“Cache-Control”, “no-store”);
+
+12.13 res.statusCode
+
+const server = http.createServer((req, res) => { res.statusCode = 200;
+res.end(“Success”); });
+
+For a missing resource:
+
+res.statusCode = 404; res.end(“Page not found”);
+
+12.14 HTTP status code categories
+
+1xx: informational. 2xx: success. 3xx: redirection. 4xx: client error.
+5xx: server error.
+
+Common codes:
+
+200 OK — successful request. 201 Created — resource created. 202
+Accepted — request accepted for processing. 204 No Content — success
+with no response body. 301 Moved Permanently — permanent redirect. 302
+Found — temporary redirect. 400 Bad Request — invalid request. 401
+Unauthorized — authentication is missing or invalid. 403 Forbidden —
+authenticated client lacks permission. 404 Not Found — resource or route
+not found. 409 Conflict — conflicting state, such as duplicate data. 422
+Unprocessable Content — validation or semantic problem. 429 Too Many
+Requests — rate limit exceeded. 500 Internal Server Error — unexpected
+server failure. 502 Bad Gateway — invalid response from an upstream
+server. 503 Service Unavailable — service temporarily unavailable.
+
+Choose status codes based on the actual result. Do not return 200 for
+every outcome.
+
+12.15 Build multiple routes manually
+
+Example:
+
+import http from “node:http”;
+
+const users = [ { id: 1, name: “Rahul”, email: “rahul@example.com” }, {
+id: 2, name: “Amit”, email: “amit@example.com” }];
+
+const server = http.createServer((req, res) => {
+res.setHeader(“Content-Type”, “application/json”);
+
+if (req.method === “GET” && req.url === “/”) { res.statusCode = 200;
+return res.end(JSON.stringify({ message: “Welcome to Node.js API” })); }
+
+if (req.method === “GET” && req.url === “/users”) { res.statusCode =
+200; return res.end(JSON.stringify(users)); }
+
+if (req.method === “GET” && req.url.startsWith(“/users/”)) { const id =
+Number(req.url.split(“/”)[2]); const user = users.find((item) => item.id
+=== id);
+
+    if (!user) {
+      res.statusCode = 404;
+      return res.end(JSON.stringify({
+        message: "User not found"
+      }));
+    }
+
+    res.statusCode = 200;
+    return res.end(JSON.stringify(user));
+
+}
+
+res.statusCode = 404; return res.end(JSON.stringify({ message: “Route
+not found” })); });
+
+server.listen(3000, () => { console.log(“Server running on port 3000”);
+});
+
+Test: - GET http://localhost:3000/ - GET http://localhost:3000/users -
+GET http://localhost:3000/users/1 - GET http://localhost:3000/users/100
+
+This manual approach becomes difficult to maintain as the number of
+routes grows. Express provides a more convenient routing system.
+
+12.16 URL parameters
+
+Example:
+
+GET /users/10
+
+Here, 10 is a URL parameter identifying a user.
+
+Manual extraction:
+
+const url = new URL(req.url, http://${req.headers.host}); const id =
+url.pathname.split(“/”)[2];
+
+In Express, a route such as /users/:id can expose the value through
+req.params.id.
+
+12.17 Query parameters
+
+Example:
+
+GET /users?page=2&limit=10
+
+Read values:
+
+const url = new URL(req.url, http://${req.headers.host});
+
+const page = url.searchParams.get(“page”); const limit =
+url.searchParams.get(“limit”);
+
+These values are strings. Convert and validate them before using them:
+
+const pageNumber = Number(url.searchParams.get(“page”) || 1); const
+limitNumber = Number(url.searchParams.get(“limit”) || 10);
+
+In Express, query values are available through req.query.
+
+12.18 Handling POST request bodies
+
+A POST request can send JSON data.
+
+Frontend example:
+
+const response = await fetch(“http://localhost:3000/users”, { method:
+“POST”, headers: { “Content-Type”: “application/json” }, body:
+JSON.stringify({ name: “Vishal”, email: “vishal@example.com” }) });
+
+const data = await response.json(); console.log(data);
+
+The built-in HTTP module does not automatically parse JSON request
+bodies. The request body is delivered as a readable stream.
+
+Example:
+
+import http from “node:http”;
+
+const server = http.createServer((req, res) => { if (req.method ===
+“POST” && req.url === “/users”) { let body = ““;
+
+    req.on("data", (chunk) => {
+      body += chunk.toString();
+    });
+
+    req.on("end", () => {
+      try {
+        const userData = JSON.parse(body);
+
+        res.writeHead(201, {
+          "Content-Type": "application/json"
+        });
+
+        res.end(JSON.stringify({
+          message: "User created successfully",
+          user: userData
+        }));
+      } catch (error) {
+        res.writeHead(400, {
+          "Content-Type": "application/json"
+        });
+
+        res.end(JSON.stringify({
+          message: "Invalid JSON data"
+        }));
+      }
+    });
+
+    return;
+
+}
+
+res.writeHead(404, { “Content-Type”: “application/json” });
+
+res.end(JSON.stringify({ message: “Route not found” })); });
+
+server.listen(3000);
+
+Explanation: 1. body starts as an empty string. 2. The data event fires
+as chunks arrive. 3. Each chunk is converted to text and appended. 4.
+The end event fires when the request body has been fully received. 5.
+JSON.parse converts the JSON string into a JavaScript object. 6.
+try/catch handles invalid JSON. 7. The server returns an appropriate
+status and JSON response.
+
+Production considerations: - Set a maximum request-body size. - Validate
+Content-Type. - Validate every input field. - Handle request stream
+errors and aborted requests. - Avoid unlimited memory growth from
+user-controlled bodies. - Use a framework or well-tested parser when
+appropriate.
+
+12.19 What is a port?
+
+A port is a logical communication endpoint used by applications on a
+machine.
+
+An address such as localhost:3000 identifies a service on the local
+machine.
+
+Common default ports:
+
+3000: often used by development servers. 3001: often used by another
+local service. 4000: sometimes used by API servers. 5000: sometimes used
+by development servers. 5432: PostgreSQL default. 6379: Redis default.
+27017: MongoDB default.
+
+These are conventions and can be changed.
+
+Two applications generally cannot listen simultaneously on the same IP
+address, port, and transport protocol combination.
+
+If a port is already occupied, Node.js may report:
+
+EADDRINUSE: address already in use
+
+Resolve it by stopping the existing process or choosing another
+available port.
+
+12.20 Handle server errors
+
+import http from “node:http”;
+
+const server = http.createServer((req, res) => { res.end(“Hello World”);
+});
+
+server.on(“error”, (error) => { if (error.code === “EADDRINUSE”) {
+console.error(“Port is already in use”); } else { console.error(“Server
+error:”, error); } });
+
+server.listen(3000);
+
+12.21 Graceful shutdown
+
+A server should stop accepting new connections and allow ongoing work to
+finish when possible.
+
+Example:
+
+server.close(() => { console.log(“Server closed successfully”); });
+
+A production application should also close database pools and other
+resources. It should handle shutdown signals such as SIGINT and SIGTERM
+and use a suitable timeout strategy for connections that do not close.
+
+12.22 Test APIs using cURL
+
+GET:
+
+curl http://localhost:3000/users
+
+GET with query parameters:
+
+curl “http://localhost:3000/users?page=2&limit=10”
+
+POST:
+
+curl -X POST http://localhost:3000/users
+-H “Content-Type: application/json”
+-d ‘{“name”:“Vishal”,“email”:“vishal@example.com”}’
+
+Show response headers:
+
+curl -i http://localhost:3000/users
+
+HEAD request / response headers:
+
+curl -I http://localhost:3000/
+
+The -I option sends a HEAD request. The server should support
+appropriate HEAD behavior for the endpoint.
+
+12.23 Node.js HTTP vs. Express
+
+Node.js HTTP:
+
+-   Create server using http.createServer().
+-   Define routes manually.
+-   Use JSON.stringify() for JSON responses.
+-   Set status with res.statusCode.
+-   Parse request bodies manually.
+-   Extract parameters manually.
+
+Express:
+
+-   Create app using express().
+-   Define routes with app.get(), app.post(), etc.
+-   Use res.json().
+-   Set status using res.status().
+-   Parse JSON with express.json().
+-   Access URL parameters with req.params.
+-   Access query parameters with req.query.
+-   Use middleware for reusable request processing.
+
+Express is a third-party framework built on Node.js HTTP capabilities.
+It does not replace Node.js.
+
+12.24 Practical exercise: products API
+
+Start with:
+
+const products = [ { id: 1, name: “Laptop”, price: 50000 }, { id: 2,
+name: “Mobile”, price: 25000 }];
+
+Implement:
+
+GET / Return welcome message. GET /products Return all products. GET
+/products/1 Return product with ID 1. POST /products Add a product.
+DELETE /products/1 Delete product with ID 1.
+
+For POST: - Read the request body. - Validate name and price. - Generate
+a unique ID. - Add the product to the array. - Return status 201 and the
+created product.
+
+For DELETE: - Extract the product ID. - Find the product. - Remove it. -
+Return 404 if it does not exist. - Return 204 with no response body if
+deletion succeeds.
+
+This example uses in-memory data. The data disappears when the process
+restarts. PostgreSQL persistence will be covered later.
+
+12.25 Interview questions
+
+Q: What is an HTTP server in Node.js? A: A program that listens for HTTP
+requests and sends HTTP responses using Node.js functionality.
+
+Q: What is req vs. res? A: req represents the incoming request; res
+represents the outgoing response.
+
+Q: What does http.createServer() do? A: Creates an HTTP server and
+registers a request listener.
+
+Q: What does server.listen() do? A: Starts listening on a specified port
+or address.
+
+Q: res.write() vs. res.end()? A: write sends response chunks; end
+completes the response.
+
+Q: How do you read a POST body without Express? A: Read the request
+stream, collect chunks, wait for the end event, then parse and validate
+the data.
+
+Q: Why use HTTP status codes? A: They communicate the result of the
+request to the client.
+
+Q: URL parameters vs. query parameters? A: URL parameters identify a
+resource; query parameters commonly filter, sort, paginate, or configure
+a request.
+
+Q: What does EADDRINUSE mean? A: The requested address and port are
+already in use.
+
+Q: Is Express part of Node.js? A: No. Express is a third-party framework
+that runs on Node.js.
+
+Practice: 1. Create a server on port 3000. 2. Return a welcome message
+from GET /. 3. Create GET /products. 4. Create GET /products/:id. 5.
+Implement POST /products with JSON body parsing. 6. Implement DELETE
+/products/:id. 7. Test the endpoints with cURL or Postman. 8. Explain
+how Express simplifies the same implementation.
+
+============================================================ SECTION 1 —
+FINAL REVISION AND SELF-ASSESSMENT
+============================================================
+
+A. The complete learning sequence
+
+1.  Backend: Understand frontend, backend, database, APIs, business
+    logic, authentication, and authorization.
+
+2.  Node.js: Understand the JavaScript runtime, built-in modules,
+    process object, and running JavaScript outside the browser.
+
+3.  Why Node.js: Understand the event-driven architecture, non-blocking
+    I/O advantages, use cases, and limitations.
+
+4.  How Node.js Works: Understand V8, Node.js APIs, libuv, the operating
+    system, and asynchronous execution.
+
+5.  V8 Engine: Understand parsing, execution, JIT optimization, garbage
+    collection, memory, and memory leaks.
+
+6.  Event Loop: Understand callbacks, timers, promises, microtasks,
+    nextTick, event-loop phases, and blocking work.
+
+7.  Single Thread: Understand the main JavaScript thread, concurrency,
+    parallelism, worker threads, and child processes.
+
+8.  Non-blocking I/O: Understand synchronous vs. asynchronous file
+    operations, database I/O, and CPU-heavy blocking work.
+
+9.  Modules: Understand built-in, local, and third-party modules;
+    CommonJS; ES modules; exports; imports; and module organization.
+
+10. npm: Understand package installation, dependencies, devDependencies,
+    lockfiles, scripts, versioning, npm ci, npx, and auditing.
+
+11. package.json: Understand project metadata, scripts, dependency
+    declarations, module type, engines, private, and overrides.
+
+12. First HTTP Server: Understand HTTP requests, responses, routes,
+    request bodies, status codes, ports, cURL, and how Express
+    simplifies server development.
+
+B. Important concepts to be able to explain without notes
+
+-   What happens when a React frontend sends a request to a Node.js
+    backend?
+-   What is the difference between JavaScript and Node.js?
+-   What are V8 and libuv?
+-   What is the event loop?
+-   What is the difference between synchronous and asynchronous code?
+-   What is the difference between concurrency and parallelism?
+-   Why can CPU-heavy code block the event loop?
+-   What is non-blocking I/O?
+-   What is the difference between CommonJS and ES modules?
+-   What is the difference between npm install and npm ci?
+-   What is the difference between dependencies and devDependencies?
+-   What is the purpose of package.json and package-lock.json?
+-   What are req and res in an HTTP server?
+-   What is the difference between URL parameters and query parameters?
+-   How do you parse a POST request body using node:http?
+-   Why do developers use Express?
+
+C. Suggested hands-on mini-project
+
+Build a small in-memory product API using only node:http.
+
+Requirements: - GET /health returns a health response. - GET /products
+returns all products. - GET /products/:id returns one product. - POST
+/products creates a product. - PATCH /products/:id updates selected
+fields. - DELETE /products/:id deletes a product. - Use correct HTTP
+methods and status codes. - Validate request bodies. - Return consistent
+JSON error responses. - Handle invalid JSON and unknown routes. - Test
+all endpoints using cURL or Postman.
+
+After completing it, rebuild the same API using Express.js. Compare how
+much manual routing and request parsing code is removed.
+
+D. Important command reference
+
+node -v npm -v node app.js npm init npm init -y npm install express npm
+install pg dotenv npm install –save-dev eslint npm uninstall express npm
+update npm outdated npm list –depth=0 npm ci npm audit npm run nvm list
+nvm install 22 nvm use 22
+
+E. Recommended project habits
+
+-   Use a supported Node.js LTS release for production projects.
+-   Keep package.json and package-lock.json in version control.
+-   Do not commit node_modules.
+-   Keep secrets in environment variables, not source code or
+    package.json.
+-   Validate and authorize requests on the backend.
+-   Handle asynchronous errors deliberately.
+-   Avoid long synchronous CPU-heavy work on the main event-loop thread.
+-   Use worker threads or separate services when appropriate for
+    CPU-heavy workloads.
+-   Choose HTTP status codes that accurately represent outcomes.
+-   Keep routes, controllers, services, and data-access logic organized
+    as the project grows.
+-   Test APIs independently of the frontend.
+
+END OF SECTION 1 — TOPICS 1–12
